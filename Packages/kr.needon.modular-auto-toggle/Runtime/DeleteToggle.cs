@@ -6,7 +6,6 @@ using UnityEngine;
 namespace ToggleTool.Runtime
 {
     [DisallowMultipleComponent]
-    [AddComponentMenu("Hirami/Toggle/DeleteToggle")]
     public class DeleteToggle : AvatarTagComponent
     {
         public Texture2D _icon;

@@ -5,6 +5,7 @@ using System.Reflection;
 using UnityEditor;
 using UnityEngine;
 using ToggleTool.Global;
+using ToggleTool.Models;
 using Version = ToggleTool.Global.Version;
 
 namespace ToggleTool.Runtime
@@ -128,9 +129,8 @@ namespace ToggleTool.Runtime
                 return;
             }
 
-            ToggleData data = new ToggleData
+            ToggleConfigModel data = new ToggleConfigModel
             {
-                version = Version.LATEST_VERSION,
                 toggleSaved = targetObject.toggleConfig.toggleSaved,
                 toggleReverse = targetObject.toggleConfig.toggleReverse,
                 toggleMenuName = targetObject.toggleConfig.toggleMenuName
@@ -148,9 +148,8 @@ namespace ToggleTool.Runtime
         {
             if (File.Exists(FilePaths.JSON_FILE_PATH))
             {
-                ToggleData data = new ToggleData
+                ToggleConfigModel data = new ToggleConfigModel
                 {
-                    version = Version.LATEST_VERSION,
                     toggleSaved = true,
                     toggleReverse = false,
                     toggleMenuName = Components.DEFAULT_COMPONENT_NAME
@@ -182,12 +181,11 @@ namespace ToggleTool.Runtime
             if (File.Exists(FilePaths.JSON_FILE_PATH))
             {
                 string json = File.ReadAllText(FilePaths.JSON_FILE_PATH);
-                ToggleData data = JsonUtility.FromJson<ToggleData>(json);
+                ToggleConfigModel data = JsonUtility.FromJson<ToggleConfigModel>(json);
 
                 var targetObject = (ToggleConfig)target;
                 if (targetObject != null)
                 {
-                    targetObject.toggleConfig.version = data.version;
                     targetObject.toggleConfig.toggleSaved = data.toggleSaved;
                     targetObject.toggleConfig.toggleReverse = data.toggleReverse;
                     targetObject.toggleConfig.toggleMenuName = data.toggleMenuName;
@@ -198,15 +196,6 @@ namespace ToggleTool.Runtime
                 EditorUtility.DisplayDialog(Messages.DIALOG_TITLE_WARNING, "Settings file not found.\n설정 파일을 찾을 수 없습니다.", Messages.DIALOG_BUTTON_OK);
             }
         }
-    }
-
-    [System.Serializable]
-    public class ToggleData
-    {
-        public string version;
-        public bool toggleSaved;
-        public bool toggleReverse;
-        public string toggleMenuName;
     }
 }
 #endif

@@ -9,7 +9,6 @@ namespace ToggleTool.Runtime
 {
     //v1.0.71
     [DisallowMultipleComponent]
-    [AddComponentMenu("Hirami/Toggle/ToggleItem")]
     public class ToggleItem : AvatarTagComponent
     {
         public Texture2D _icon;

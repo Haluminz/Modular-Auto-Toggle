@@ -3,6 +3,7 @@ using System.IO;
 using UnityEditor;
 using UnityEngine;
 using ToggleTool.Global;
+using ToggleTool.Models;
 
 //v1.0.68
 namespace ToggleTool.Editor
@@ -52,7 +53,7 @@ namespace ToggleTool.Editor
         {
             if (File.Exists(FilePaths.JSON_FILE_PATH))
             {
-                ToggleData data = new ToggleData
+                ToggleConfigModel data = new ToggleConfigModel
                 {
                     toggleSaved = true,
                     toggleReverse = false,
@@ -86,7 +87,7 @@ namespace ToggleTool.Editor
             if (File.Exists(FilePaths.JSON_FILE_PATH))
             {
                 string json = File.ReadAllText(FilePaths.JSON_FILE_PATH);
-                ToggleData data = JsonUtility.FromJson<ToggleData>(json);
+                ToggleConfigModel data = JsonUtility.FromJson<ToggleConfigModel>(json);
                 _toggleSaved = data.toggleSaved;
                 _toggleReverse = data.toggleReverse;
                 _toggleMenuName = data.toggleMenuName;
@@ -95,7 +96,7 @@ namespace ToggleTool.Editor
 
         private void SaveJson()
         {
-            ToggleData data = new ToggleData
+            ToggleConfigModel data = new ToggleConfigModel
             {
                 toggleSaved = _toggleSaved,
                 toggleReverse = _toggleReverse,
@@ -107,14 +108,6 @@ namespace ToggleTool.Editor
             AssetDatabase.SaveAssets();
             AssetDatabase.Refresh();
         }
-    }
-
-    [System.Serializable]
-    public class ToggleData
-    {
-        public bool toggleSaved;
-        public bool toggleReverse;
-        public string toggleMenuName;
     }
 }
 #endif
