@@ -7,6 +7,7 @@ using UnityEngine;
 using ToggleTool.Global;
 using ToggleTool.Models;
 using Version = ToggleTool.Global.Version;
+using ToggleTool.Utils;
 
 namespace ToggleTool.Runtime
 {
@@ -32,7 +33,7 @@ namespace ToggleTool.Runtime
             var toggleConfigs = Resources.FindObjectsOfTypeAll<ToggleConfig>();
             foreach (var toggleConfig in toggleConfigs)
             {
-                var icon = AssetDatabase.LoadAssetAtPath<Texture2D>(FilePaths.IMAGE_PATH_TOGGLE_ON);
+                var icon = ImageLoader.instance["ToggleON"].iconTexture;
                 SetUnityObjectIcon(toggleConfig, icon);
             }
             
@@ -43,7 +44,7 @@ namespace ToggleTool.Runtime
         private void OnEnable()
         {
             this._toggleConfig = (ToggleConfig)target;
-            this._toggleConfig._icon = AssetDatabase.LoadAssetAtPath<Texture2D>(FilePaths.IMAGE_PATH_TOGGLE_ON);
+            this._toggleConfig._icon = ImageLoader.instance["ToggleON"].iconTexture;
             EditorApplication.update += SetIconImmediate;
             
             // 설정 불러오기

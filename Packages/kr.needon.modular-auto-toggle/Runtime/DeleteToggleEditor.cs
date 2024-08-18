@@ -10,6 +10,7 @@ using UnityEditor;
 using UnityEditor.Animations;
 using UnityEngine;
 using VRC.SDK3.Avatars.Components;
+using ToggleTool.Utils;
 
 namespace ToggleTool.Runtime
 {
@@ -26,7 +27,7 @@ namespace ToggleTool.Runtime
         {
                 
             this._deleteToggle = (DeleteToggle)target;
-            this._deleteToggle._icon = AssetDatabase.LoadAssetAtPath<Texture2D>(FilePaths.IMAGE_PATH_TOGGLE_ON);
+            this._deleteToggle._icon = ImageLoader.instance["ToggleON"].iconTexture;
             SetUnityObjectIcon(this._deleteToggle, this._deleteToggle._icon);
                 
             // 아바타 자동 감지

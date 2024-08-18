@@ -6,12 +6,37 @@ using nadena.dev.modular_avatar.core;
 using UnityEditor;
 using UnityEngine;
 using ToggleTool.Global;
+using ToggleTool.Utils;
 
 namespace ToggleTool.Runtime
 {
     [CustomEditor(typeof(ToggleItem))]
+    [InitializeOnLoad]
     public class ToggleItemEditor : UnityEditor.Editor
     {
+        static ToggleItemEditor()
+        {
+            // 유니티 에디터 로드 시 자동으로 호출되는 정적 생성자
+            EditorApplication.update += UpdateIcons;
+        }
+
+        private static void UpdateIcons()
+        {
+            // 모든 ToggleItem 인스턴스에 대해 아이콘 설정
+            var toggleItems = Resources.FindObjectsOfTypeAll<ToggleItem>();
+            foreach (var toggleItem in toggleItems)
+            {
+                var icon = ImageLoader.instance["ToggleON"].iconTexture;
+                if (icon != null)
+                {
+                    EditorGUIUtility.SetIconForObject(toggleItem, icon);
+                }
+            }
+
+            // 설정 완료 후 이벤트 해제
+            EditorApplication.update -= UpdateIcons;
+        }
+        
         private Texture2D _icon;
         private bool _applyToOnAnimation = true; // On 애니메이션에 적용할지 여부
         private bool _applyToOffAnimation = true; // Off 애니메이션에 적용할지 여부
@@ -21,13 +46,6 @@ namespace ToggleTool.Runtime
 
         private void OnEnable()
         {
-            // 아이콘 로드
-            _icon = AssetDatabase.LoadAssetAtPath<Texture2D>(FilePaths.IMAGE_PATH_TOGGLE_ON);
-            if (_icon != null)
-            {
-                EditorGUIUtility.SetIconForObject(target, _icon);
-            }
-
             _applyToOnAnimation = EditorPrefs.GetBool(ApplyToOnAnimationKey, true);
             _applyToOffAnimation = EditorPrefs.GetBool(ApplyToOffAnimationKey, true);
         }

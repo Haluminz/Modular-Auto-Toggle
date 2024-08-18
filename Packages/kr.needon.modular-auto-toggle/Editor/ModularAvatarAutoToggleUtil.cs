@@ -10,6 +10,8 @@ using UnityEditor.Animations;
 using UnityEngine;
 using VRC.SDK3.Avatars.ScriptableObjects;
 using ToggleTool.Global;
+using ToggleTool.Utils;
+using ToggleTool.Models;
 
 //v1.0.71
 namespace ToggleTool.Editor
@@ -131,15 +133,15 @@ namespace ToggleTool.Editor
 
         private static void SetToggleMenuNameSetting(string name)
         {
-            ToggleSettings settings;
+            ToggleConfigModel settings;
             if (File.Exists(FilePaths.JSON_FILE_PATH))
             {
                 string json = File.ReadAllText(FilePaths.JSON_FILE_PATH);
-                settings = JsonUtility.FromJson<ToggleSettings>(json);
+                settings = JsonUtility.FromJson<ToggleConfigModel>(json);
             }
             else
             {
-                settings = new ToggleSettings();
+                settings = new ToggleConfigModel();
             }
 
             settings.toggleMenuName = name;
@@ -342,9 +344,9 @@ namespace ToggleTool.Editor
 
             menuItem.Control.type = VRCExpressionsMenu.Control.ControlType.Toggle;
             menuItem.Control.parameter = new VRCExpressionsMenu.Control.Parameter { name = paramName }; //모듈러 파라미터 이름 설정
-            menuItem.Control.icon = AssetDatabase.LoadAssetAtPath<Texture2D>(FilePaths.IMAGE_PATH_TOGGLE_ON); // 메뉴 아이콘 설정
+            menuItem.Control.icon = ImageLoader.instance["ToggleON"].iconTexture; // 메뉴 아이콘 설정
         }
-
+        
         private static void ConfigureParentMenuItem(GameObject obj)
         {
             obj.AddComponent<ToggleConfig>();
@@ -354,16 +356,16 @@ namespace ToggleTool.Editor
 
             menuItem.Control.type = VRCExpressionsMenu.Control.ControlType.SubMenu;
             menuItem.MenuSource = SubmenuSource.Children;
-            menuItem.Control.icon = AssetDatabase.LoadAssetAtPath<Texture2D>(FilePaths.IMAGE_PATH_TOGGLE_ON); // 메뉴 아이콘 설정
+            menuItem.Control.icon = ImageLoader.instance["ToggleON"].iconTexture; // 메뉴 아이콘 설정
         }
 
         // Settings
 
         private static void ReadSetting()
         {
-            ToggleSettings settings = File.Exists(FilePaths.JSON_FILE_PATH)
-                ? JsonUtility.FromJson<ToggleSettings>(File.ReadAllText(FilePaths.JSON_FILE_PATH))
-                : new ToggleSettings();
+            ToggleConfigModel settings = File.Exists(FilePaths.JSON_FILE_PATH)
+                ? JsonUtility.FromJson<ToggleConfigModel>(File.ReadAllText(FilePaths.JSON_FILE_PATH))
+                : new ToggleConfigModel();
             toggleSaved = settings.toggleSaved;
             toggleReverse = settings.toggleReverse;
             toggleMenuName = settings.toggleMenuName ?? Components.DEFAULT_COMPONENT_NAME;
@@ -393,7 +395,7 @@ namespace ToggleTool.Editor
             EditorUtility.DisplayProgressBar("Creating Toggle Items", message, progress);
         }
 
-        private static void SaveSettingsToEditorPrefs(ToggleSettings settings)
+        private static void SaveSettingsToEditorPrefs(ToggleConfigModel settings)
         {
             EditorPrefs.SetBool("AutoToggleCreator_toggleSaved", settings.toggleSaved);
             EditorPrefs.SetBool("AutoToggleCreator_toggleReverse", settings.toggleReverse);
@@ -419,13 +421,4 @@ namespace ToggleTool.Editor
         }
     }
 }
-
-[System.Serializable]
-public class ToggleSettings
-{
-    public bool toggleSaved = true;
-    public bool toggleReverse;
-    public string toggleMenuName;
-}
-
 #endif

@@ -8,6 +8,7 @@ using UnityEditor.Animations;
 using UnityEngine;
 using VRC.SDK3.Avatars.Components;
 using ToggleTool.Global;
+using ToggleTool.Models;
 
 //v1.0.68
 namespace ToggleTool.Editor
@@ -312,7 +313,7 @@ namespace ToggleTool.Editor
             if (File.Exists(FilePaths.JSON_FILE_PATH))
             {
                 string json = File.ReadAllText(FilePaths.JSON_FILE_PATH);
-                var settings = JsonUtility.FromJson<ToggleSettings>(json);
+                ToggleConfigModel settings = JsonUtility.FromJson<ToggleConfigModel>(json);
                 return settings.toggleMenuName;
             }
 

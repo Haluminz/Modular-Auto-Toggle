@@ -11,7 +11,5 @@
         
         public const string IMAGE_PATH_TOGGLE_ON = PACKAGE_PATH + "Resource/toggleON.png";
         public const string IMAGE_PATH_TOGGLE_OFF = PACKAGE_PATH + "Resource/toggleOFF.png";
-        
-        
     }
 }
