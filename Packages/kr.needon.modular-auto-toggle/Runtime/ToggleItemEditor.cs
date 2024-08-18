@@ -5,8 +5,9 @@ using System.Linq;
 using nadena.dev.modular_avatar.core;
 using UnityEditor;
 using UnityEngine;
+using ToggleTool.Global;
 
-namespace Runtime
+namespace ToggleTool.Runtime
 {
     [CustomEditor(typeof(ToggleItem))]
     public class ToggleItemEditor : UnityEditor.Editor
@@ -21,8 +22,7 @@ namespace Runtime
         private void OnEnable()
         {
             // 아이콘 로드
-            _icon = AssetDatabase.LoadAssetAtPath<Texture2D>(
-                "Packages/kr.needon.modular-auto-toggle/Resource/toggleON.png");
+            _icon = AssetDatabase.LoadAssetAtPath<Texture2D>(FilePaths.IMAGE_PATH_TOGGLE_ON);
             if (_icon != null)
             {
                 EditorGUIUtility.SetIconForObject(target, _icon);
@@ -161,7 +161,7 @@ namespace Runtime
                     string rootName = menuItem.transform.root.name;
 
                     Debug.Log($"Parameter name: {parameterName}");
-                    string fullPath = FindFileByGuid(parameterName, "Assets/Hirami/Toggle/"+rootName).Replace("_off.anim", "");
+                    string fullPath = FindFileByGuid(parameterName, FilePaths.TARGET_FOLDER_PATH + "/" + rootName).Replace("_off.anim", "");
 
                     string onToggleAnimePath = fullPath + "_on.anim";
                     string offToggleAnimePath = fullPath + "_off.anim";

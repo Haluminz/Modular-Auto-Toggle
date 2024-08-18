@@ -4,22 +4,21 @@ using System.Linq;
 using System.Security.Cryptography;
 using System.Text;
 using nadena.dev.modular_avatar.core;
-using Runtime;
+using ToggleTool.Runtime;
 using UnityEditor;
 using UnityEditor.Animations;
 using UnityEngine;
 using VRC.SDK3.Avatars.ScriptableObjects;
+using ToggleTool.Global;
 
 //v1.0.71
-namespace Editor
+namespace ToggleTool.Editor
 {
     public abstract class AutoToggleCreator
     {
-        private static readonly string folderPath = "Assets/Hirami/Toggle";
-        private static readonly string settingPath = "Assets/Hirami/Toggle/setting.json";
         private static bool toggleSaved = true;
         private static bool toggleReverse = false;
-        private static string toggleMenuName = "Toggles";
+        private static string toggleMenuName;
         private static string componentName = null;
 
         // componentName 변수를 EditorPrefs에 저장하는 함수
@@ -46,7 +45,7 @@ namespace Editor
             GameObject[] selectedObjects = Selection.gameObjects;
             GameObject rootObject = null;
             rootObject = selectedObjects[0].transform.root.gameObject;
-            string targetFolder = folderPath + "/" + rootObject.name;
+            string targetFolder = FilePaths.TARGET_FOLDER_PATH + "/" + rootObject.name;
             Debug.Log("targetFolderPath :: " + targetFolder);
 
             // targetFolder가 없으면 componentName을 null로 설정하여 다시 입력을 받도록 함
@@ -76,22 +75,22 @@ namespace Editor
             {
                 Debug.LogError(
                     "The selected GameObjects must be part of an avatar with a VRC Avatar Descriptor.\n선택된 오브젝트들은 VRC 아바타 디스크립터를 가진 아바타의 일부여야 합니다.");
-                EditorUtility.DisplayDialog("Error",
+                EditorUtility.DisplayDialog(Messages.DIALOG_TITLE_ERROR,
                     "The selected GameObjects must be part of an avatar with a VRC Avatar Descriptor.\n선택된 오브젝트들은 VRC 아바타 디스크립터를 가진 아바타의 일부여야 합니다.",
-                    "OK");
+                    Messages.DIALOG_BUTTON_OK);
                 return;
             }
 
             if (!rootObject)
             {
                 Debug.LogError("The selected GameObject has no parent.\n선택한 오브젝트에 부모 오브젝트가 없습니다.");
-                EditorUtility.DisplayDialog("Error", "The selected GameObject has no parent.", "OK");
+                EditorUtility.DisplayDialog(Messages.DIALOG_TITLE_ERROR, "The selected GameObject has no parent.", Messages.DIALOG_BUTTON_OK);
                 return;
             }
 
             ReadSetting();
 
-            targetFolder = folderPath + "/" + rootObject.name;
+            targetFolder = FilePaths.TARGET_FOLDER_PATH + "/" + rootObject.name;
 
             if (!AssetDatabase.IsValidFolder(targetFolder))
             {
@@ -123,7 +122,7 @@ namespace Editor
                 EditorUtility.ClearProgressBar();
                 EditorUtility.DisplayDialog("Toggle Items Creation",
                     "All toggle items have been created successfully.\n\n모든 토글 아이템이 성공적으로 생성되었습니다.",
-                    "OK");
+                    Messages.DIALOG_BUTTON_OK);
 
                 AssetDatabase.SaveAssets();
                 AssetDatabase.Refresh();
@@ -132,11 +131,10 @@ namespace Editor
 
         private static void SetToggleMenuNameSetting(string name)
         {
-            string jsonFilePath = "Assets/Hirami/Toggle/setting.json";
             ToggleSettings settings;
-            if (File.Exists(jsonFilePath))
+            if (File.Exists(FilePaths.JSON_FILE_PATH))
             {
-                string json = File.ReadAllText(jsonFilePath);
+                string json = File.ReadAllText(FilePaths.JSON_FILE_PATH);
                 settings = JsonUtility.FromJson<ToggleSettings>(json);
             }
             else
@@ -146,7 +144,7 @@ namespace Editor
 
             settings.toggleMenuName = name;
             string updatedJson = JsonUtility.ToJson(settings, true);
-            File.WriteAllText(jsonFilePath, updatedJson);
+            File.WriteAllText(FilePaths.JSON_FILE_PATH, updatedJson);
             AssetDatabase.Refresh();
 
             // Save settings to EditorPrefs
@@ -207,7 +205,7 @@ namespace Editor
         private static AnimatorController ConfigureAnimator(GameObject[] items, GameObject rootObject,
             string targetFolder, string groupName, string paramName)
         {
-            string animatorPath = targetFolder + "/toggle_fx.controller";
+            string animatorPath = targetFolder + "/" + FilePaths.ANIMATOR_FILE_NAME;
 
             AnimatorController toggleAnimator = null;
 
@@ -247,9 +245,9 @@ namespace Editor
             AnimationClip onClip = RecordState(items, rootObject, targetFolder, groupName, true);
             AnimationClip offClip = RecordState(items, rootObject, targetFolder, groupName, false);
 
-            AnimatorState onState = stateMachine.AddState("on");
+            AnimatorState onState = stateMachine.AddState(Messages.STATE_NAME_ON);
             onState.motion = onClip;
-            AnimatorState offState = stateMachine.AddState("off");
+            AnimatorState offState = stateMachine.AddState(Messages.STATE_NAME_OFF);
             offState.motion = offClip;
 
             stateMachine.defaultState = offState;
@@ -282,7 +280,7 @@ namespace Editor
         private static AnimationClip RecordState(GameObject[] items, GameObject rootObject, string folderPath,
             string groupName, bool activation)
         {
-            string stateName = activation ? "on" : "off";
+            string stateName = activation ? Messages.STATE_NAME_ON : Messages.STATE_NAME_OFF;
             string clipName = $"{groupName}_" + Md5Hash(rootObject.name + "_" + groupName) + $"_{stateName}";
             string fullPath = $"{folderPath}/Toggle_{clipName}.anim";
 
@@ -344,10 +342,7 @@ namespace Editor
 
             menuItem.Control.type = VRCExpressionsMenu.Control.ControlType.Toggle;
             menuItem.Control.parameter = new VRCExpressionsMenu.Control.Parameter { name = paramName }; //모듈러 파라미터 이름 설정
-            menuItem.Control.icon =
-                AssetDatabase.LoadAssetAtPath<Texture2D>(
-                    "Packages/kr.needon.modular-auto-toggle/Resource/toggleON.png");
-            ; // 메뉴 아이콘 설정
+            menuItem.Control.icon = AssetDatabase.LoadAssetAtPath<Texture2D>(FilePaths.IMAGE_PATH_TOGGLE_ON); // 메뉴 아이콘 설정
         }
 
         private static void ConfigureParentMenuItem(GameObject obj)
@@ -359,22 +354,19 @@ namespace Editor
 
             menuItem.Control.type = VRCExpressionsMenu.Control.ControlType.SubMenu;
             menuItem.MenuSource = SubmenuSource.Children;
-            menuItem.Control.icon =
-                AssetDatabase.LoadAssetAtPath<Texture2D>(
-                    "Packages/kr.needon.modular-auto-toggle/Resource/toggleON.png");
-            ; // 메뉴 아이콘 설정
+            menuItem.Control.icon = AssetDatabase.LoadAssetAtPath<Texture2D>(FilePaths.IMAGE_PATH_TOGGLE_ON); // 메뉴 아이콘 설정
         }
 
         // Settings
 
         private static void ReadSetting()
         {
-            ToggleSettings settings = File.Exists(settingPath)
-                ? JsonUtility.FromJson<ToggleSettings>(File.ReadAllText(settingPath))
+            ToggleSettings settings = File.Exists(FilePaths.JSON_FILE_PATH)
+                ? JsonUtility.FromJson<ToggleSettings>(File.ReadAllText(FilePaths.JSON_FILE_PATH))
                 : new ToggleSettings();
             toggleSaved = settings.toggleSaved;
             toggleReverse = settings.toggleReverse;
-            toggleMenuName = settings.toggleMenuName ?? "Toggles";
+            toggleMenuName = settings.toggleMenuName ?? Components.DEFAULT_COMPONENT_NAME;
             AssetDatabase.Refresh();
 
             // Load settings from EditorPrefs

@@ -3,7 +3,7 @@ using nadena.dev.modular_avatar.core;
 using UnityEngine;
 
 //v1.0.71
-namespace Runtime
+namespace ToggleTool.Runtime
 {
     [DisallowMultipleComponent]
     [AddComponentMenu("Hirami/Toggle/DeleteToggle")]
