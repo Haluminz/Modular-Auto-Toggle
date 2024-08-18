@@ -46,6 +46,7 @@ namespace ToggleTool.Runtime
 
         private void OnEnable()
         {
+            UpdateIcons();
             _applyToOnAnimation = EditorPrefs.GetBool(ApplyToOnAnimationKey, true);
             _applyToOffAnimation = EditorPrefs.GetBool(ApplyToOffAnimationKey, true);
         }
