@@ -11,26 +11,6 @@ namespace ToggleTool.Utils
 {
     public class ImageLoader : MonoBehaviour
     {
-#if UNITY_EDITOR
-        [InitializeOnLoadMethod]
-        private static void OnInitialize()
-        {
-            EditorApplication.playModeStateChanged += OnPlayModeStateChanged;
-        }
-
-        private static void OnPlayModeStateChanged(PlayModeStateChange state)
-        {
-            if (state == PlayModeStateChange.ExitingPlayMode)
-            {
-                Debug.Log("Exiting Play Mode - Reloading Images.");
-                foreach (var loader in instance.Values)
-                {
-                    loader.LoadImage(loader.Filename); // 각 ImageLoader 인스턴스에 대해 LoadImage 호출
-                }
-            }
-        }
-#endif
-
         public static readonly Dictionary<string, ImageLoader> instance = new Dictionary<string, ImageLoader>()
         {
             { "ToggleON", new ImageLoader(FilePaths.IMAGE_NAME_TOGGLE_ON) },

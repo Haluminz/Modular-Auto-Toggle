@@ -26,7 +26,7 @@ namespace ToggleTool.Runtime
             var toggleItems = Resources.FindObjectsOfTypeAll<ToggleItem>();
             foreach (var toggleItem in toggleItems)
             {
-                var icon = ImageLoader.instance["ToggleON"].iconTexture;
+                var icon = AssetDatabase.LoadAssetAtPath<Texture2D>(FilePaths.PACKAGE_RESOURCES_PATH + FilePaths.IMAGE_NAME_TOGGLE_ON);;
                 if (icon != null)
                 {
                     EditorGUIUtility.SetIconForObject(toggleItem, icon);
