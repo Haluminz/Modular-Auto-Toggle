@@ -228,6 +228,8 @@ namespace ToggleTool.Editor
         
         private static void ConfigureMenuItem(GameObject obj, string paramName)
         {
+            var identifier = obj.AddComponent<MenuItemIdentifier>();
+            identifier.IdentifierName = Components.TOGGLE_TOOL_IDENTIFIER;  // 토글툴 컴포넌트를 식별할 수 있는 정보 설정
             var menuItem = obj.AddComponent<ModularAvatarMenuItem>();
             menuItem.Control = menuItem.Control ?? new VRCExpressionsMenu.Control();
 
@@ -238,6 +240,9 @@ namespace ToggleTool.Editor
         
         private static void ConfigureParentMenuItem(GameObject obj)
         {
+            var identifier = obj.AddComponent<MenuItemIdentifier>();
+            identifier.IdentifierName = Components.TOGGLE_TOOL_IDENTIFIER;  // 토글툴 컴포넌트를 식별할 수 있는 정보 설정
+
             obj.AddComponent<ToggleConfig>();
             obj.AddComponent<DeleteToggle>();
             var menuItem = obj.AddComponent<ModularAvatarMenuItem>();
@@ -293,6 +298,10 @@ namespace ToggleTool.Editor
                 toggleMenuName = EditorPrefs.GetString("AutoToggleCreator_toggleMenuName");
             }
         }
+    }
+    public class MenuItemIdentifier : MonoBehaviour
+    {
+        public string IdentifierName;
     }
 }
 #endif

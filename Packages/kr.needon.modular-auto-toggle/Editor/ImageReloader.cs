@@ -36,10 +36,13 @@ namespace ToggleTool.Editor
             // 여기서 다시 아이콘을 설정
             foreach (var menuItem in GameObject.FindObjectsOfType<ModularAvatarMenuItem>())
             {
-                string paramName = menuItem.Control.parameter.name;
-                if (ImageLoader.instance.TryGetValue("ToggleON", out ImageLoader loader))
+                var identifier = obj.GetComponent<MenuItemIdentifier>();
+                if (identifier != null && identifier.IdentifierName == Components.TOGGLE_TOOL_IDENTIFIER)
                 {
-                    menuItem.Control.icon = loader.iconTexture;
+                    if (ImageLoader.instance.TryGetValue("ToggleON", out ImageLoader loader))
+                    {
+                        menuItem.Control.icon = loader.iconTexture;
+                    }
                 }
             }
         }
