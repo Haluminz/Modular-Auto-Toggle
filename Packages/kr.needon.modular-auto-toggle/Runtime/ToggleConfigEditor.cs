@@ -92,6 +92,11 @@ namespace ToggleTool.Runtime
                 ResetSettings();
             }
 
+            if (GUILayout.Button("Update Settings"))
+            {
+                UpdateToggle.UpdateSetting(_toggleConfig.gameObject);
+            }
+            
             serializedObject.ApplyModifiedProperties(); // 수정된 속성 적용
         }
 

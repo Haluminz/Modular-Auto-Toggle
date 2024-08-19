@@ -12,6 +12,7 @@ using VRC.SDK3.Avatars.ScriptableObjects;
 using ToggleTool.Global;
 using ToggleTool.Utils;
 using ToggleTool.Models;
+using ToggleTool.ViewModel;
 
 //v1.0.71
 namespace ToggleTool.Editor
@@ -92,8 +93,6 @@ namespace ToggleTool.Editor
 
             ReadSetting();
 
-            targetFolder = FilePaths.TARGET_FOLDER_PATH + "/" + rootObject.name;
-
             if (!AssetDatabase.IsValidFolder(targetFolder))
             {
                 string[] folders = targetFolder.Split('/');
@@ -158,7 +157,7 @@ namespace ToggleTool.Editor
             var toggleTransform = rootObject.transform.Find(toggleMenuName);
             var toggleGameObject = !toggleTransform ? null : toggleTransform.gameObject;
             string groupName = string.Join("_", items.Select(obj => obj.name));
-            string paramName = Md5Hash(rootObject.name + "_" + groupName);
+            string paramName = ToggleController.Md5Hash(rootObject.name + "_" + groupName);
             int currentStep = 0, totalSteps = 6;
 
             UpdateProgressBar(currentStep++, totalSteps, "Initializing...");
@@ -173,6 +172,13 @@ namespace ToggleTool.Editor
             UpdateProgressBar(currentStep++, totalSteps, "Creating Toggle Object...");
             GameObject newObj = new GameObject("Toggle_" + groupName);
             newObj.transform.SetParent(toggleTransform, false);
+
+            // ItemsHolder 컴포넌트 추가 및 items 배열 설정
+            var itemsHolder = newObj.AddComponent<ItemsHolder>();
+            itemsHolder.rootObjectName = rootObject.name;
+            itemsHolder.items = items;
+            itemsHolder.toggleSaved = toggleSaved;
+            itemsHolder.toggleReverse = toggleReverse;
 
             UpdateProgressBar(currentStep++, totalSteps, "Configure Parameter...");
             ConfigureAvatarParameters(newObj, paramName);
@@ -194,7 +200,7 @@ namespace ToggleTool.Editor
             }
 
             UpdateProgressBar(currentStep++, totalSteps, "Configure Animator...");
-            mergeAnimator.animator = ConfigureAnimator(items, rootObject, targetFolder, groupName, paramName);
+            mergeAnimator.animator = ToggleController.ConfigureAnimator(items, rootObject, targetFolder, groupName, paramName, toggleSaved, toggleReverse, false, string.Empty);
             mergeAnimator.pathMode = MergeAnimatorPathMode.Absolute;
             mergeAnimator.matchAvatarWriteDefaults = true;
             mergeAnimator.deleteAttachedAnimator = true;
@@ -202,123 +208,6 @@ namespace ToggleTool.Editor
             UpdateProgressBar(currentStep++, totalSteps, "Complete!");
             AssetDatabase.SaveAssets();
             AssetDatabase.Refresh();
-        }
-
-        private static AnimatorController ConfigureAnimator(GameObject[] items, GameObject rootObject,
-            string targetFolder, string groupName, string paramName)
-        {
-            string animatorPath = targetFolder + "/" + FilePaths.ANIMATOR_FILE_NAME;
-
-            AnimatorController toggleAnimator = null;
-
-            if ((toggleAnimator = AssetDatabase.LoadAssetAtPath<AnimatorController>(animatorPath)) == null)
-            {
-                toggleAnimator = AnimatorController.CreateAnimatorControllerAtPath(animatorPath);
-                toggleAnimator.RemoveLayer(0);
-            }
-
-            AnimatorStateMachine stateMachine = new AnimatorStateMachine
-            {
-                name = paramName,
-                hideFlags = HideFlags.HideInHierarchy
-            };
-
-            if (toggleAnimator.layers.All(l => l.name != paramName))
-            {
-                AssetDatabase.AddObjectToAsset(stateMachine, toggleAnimator);
-                toggleAnimator.AddLayer(new AnimatorControllerLayer
-                {
-                    name = paramName,
-                    stateMachine = stateMachine,
-                    defaultWeight = 1f
-                });
-            }
-
-            if (toggleAnimator.parameters.All(p => p.name != paramName))
-            {
-                toggleAnimator.AddParameter(new AnimatorControllerParameter
-                {
-                    name = paramName,
-                    type = AnimatorControllerParameterType.Bool,
-                    defaultBool = toggleSaved
-                });
-            }
-
-            AnimationClip onClip = RecordState(items, rootObject, targetFolder, groupName, true);
-            AnimationClip offClip = RecordState(items, rootObject, targetFolder, groupName, false);
-
-            AnimatorState onState = stateMachine.AddState(Messages.STATE_NAME_ON);
-            onState.motion = onClip;
-            AnimatorState offState = stateMachine.AddState(Messages.STATE_NAME_OFF);
-            offState.motion = offClip;
-
-            stateMachine.defaultState = offState;
-
-            AnimatorConditionMode conditionModeForOn =
-                toggleReverse ? AnimatorConditionMode.IfNot : AnimatorConditionMode.If;
-            AnimatorConditionMode conditionModeForOff =
-                toggleReverse ? AnimatorConditionMode.If : AnimatorConditionMode.IfNot;
-
-            AnimatorStateTransition transitionToOn = offState.AddTransition(onState);
-            transitionToOn.hasExitTime = false;
-            transitionToOn.exitTime = 0f;
-            transitionToOn.duration = 0f;
-            transitionToOn.AddCondition(conditionModeForOn, 0, paramName);
-
-            AnimatorStateTransition transitionToOff = onState.AddTransition(offState);
-            transitionToOff.hasExitTime = false;
-            transitionToOff.exitTime = 0f;
-            transitionToOff.duration = 0f;
-            transitionToOff.AddCondition(conditionModeForOff, 0, paramName);
-
-            // 변경 사항 저장
-            AssetDatabase.SaveAssets();
-            AssetDatabase.Refresh();
-
-            return toggleAnimator;
-        }
-
-
-        private static AnimationClip RecordState(GameObject[] items, GameObject rootObject, string folderPath,
-            string groupName, bool activation)
-        {
-            string stateName = activation ? Messages.STATE_NAME_ON : Messages.STATE_NAME_OFF;
-            string clipName = $"{groupName}_" + Md5Hash(rootObject.name + "_" + groupName) + $"_{stateName}";
-            string fullPath = $"{folderPath}/Toggle_{clipName}.anim";
-
-            var existingClip = AssetDatabase.LoadAssetAtPath<AnimationClip>(fullPath);
-            if (existingClip != null)
-            {
-                var overwrite = EditorUtility.DisplayDialog(
-                    "Animation Clip Exists",
-                    $"An animation clip already exists at '{fullPath}'. Do you want to overwrite it?",
-                    "Overwrite",
-                    "Cancel"
-                );
-
-                if (!overwrite)
-                {
-                    return existingClip;
-                }
-            }
-
-            var clip = new AnimationClip { name = clipName };
-            var curve = new AnimationCurve();
-            curve.AddKey(0f, activation ? 1f : 0f);
-
-            foreach (GameObject obj in items)
-            {
-                AnimationUtility.SetEditorCurve(clip,
-                    EditorCurveBinding.FloatCurve(
-                        AnimationUtility.CalculateTransformPath(obj.transform, rootObject.transform),
-                        typeof(GameObject), "m_IsActive"), curve);
-            }
-
-            AssetDatabase.CreateAsset(clip, fullPath);
-            AssetDatabase.SaveAssets();
-            AssetDatabase.Refresh();
-
-            return clip;
         }
 
         // Modular Avatar
@@ -372,20 +261,6 @@ namespace ToggleTool.Editor
 
             // Load settings from EditorPrefs
             LoadSettingsFromEditorPrefs();
-        }
-
-        private static string Md5Hash(string input)
-        {
-            MD5 md5 = MD5.Create();
-            byte[] hashBytes = md5.ComputeHash(Encoding.ASCII.GetBytes(input));
-
-            StringBuilder sb = new StringBuilder();
-            foreach (byte b in hashBytes)
-            {
-                sb.Append(b.ToString("X2"));
-            }
-
-            return sb.ToString();
         }
 
         private static void UpdateProgressBar(int currentStep, int totalSteps, string message)

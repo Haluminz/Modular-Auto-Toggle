@@ -41,22 +41,21 @@ namespace ToggleTool.Runtime
         private bool _applyToOnAnimation = true; // On 애니메이션에 적용할지 여부
         private bool _applyToOffAnimation = true; // Off 애니메이션에 적용할지 여부
 
-        private const string ApplyToOnAnimationKey = "ToggleItemEditor_ApplyToOnAnimation";
-        private const string ApplyToOffAnimationKey = "ToggleItemEditor_ApplyToOffAnimation";
-
         private void OnEnable()
         {
             UpdateIcons();
-            _applyToOnAnimation = EditorPrefs.GetBool(ApplyToOnAnimationKey, true);
-            _applyToOffAnimation = EditorPrefs.GetBool(ApplyToOffAnimationKey, true);
+            ToggleItem toggleItem = (ToggleItem)target;
+            _applyToOnAnimation = toggleItem._applyToOnAnimation;
+            _applyToOffAnimation = toggleItem._applyToOffAnimation;
         }
 
         private void OnDisable()
         {
-            EditorPrefs.SetBool(ApplyToOnAnimationKey, _applyToOnAnimation);
-            EditorPrefs.SetBool(ApplyToOffAnimationKey, _applyToOffAnimation);
+            ToggleItem toggleItem = (ToggleItem)target;
+            toggleItem._applyToOnAnimation = _applyToOnAnimation;
+            toggleItem._applyToOffAnimation = _applyToOffAnimation;
         }
-
+        
         public override void OnInspectorGUI()
         {
             serializedObject.Update();
@@ -151,142 +150,18 @@ namespace ToggleTool.Runtime
 
             // Apply 버튼
             EditorGUILayout.BeginHorizontal();
-            _applyToOnAnimation = EditorGUILayout.Toggle("Apply to On Animation", _applyToOnAnimation);
-            _applyToOffAnimation = EditorGUILayout.Toggle("Apply to Off Animation", _applyToOffAnimation);
+            // Cast target to ToggleItem
+            ToggleItem toggleItem = (ToggleItem)target;
+            _applyToOnAnimation = EditorGUILayout.Toggle("Apply to On Animation", toggleItem._applyToOnAnimation);
+            _applyToOffAnimation = EditorGUILayout.Toggle("Apply to Off Animation", toggleItem._applyToOffAnimation);
             EditorGUILayout.EndHorizontal();
 
             if (GUILayout.Button("Apply"))
             {
-                applyBlendShape();
+                toggleItem.applyBlendShape();
             }
-
-            void applyBlendShape()
-            {
-                // Cast target to ToggleItem
-                ToggleItem toggleItem = (ToggleItem)target;
-
-                // Get the other components
-                var menuItem = toggleItem.GetComponent<ModularAvatarMenuItem>();
-
-                if (menuItem != null)
-                {
-                    Debug.Log($"MAMenuItem found: {menuItem.name}");
-
-                    // Access the Control property
-                    var control = menuItem.Control;
-
-                    // Get the parameter name
-                    string parameterName = control.parameter?.name ?? "None";
-                    string rootName = menuItem.transform.root.name;
-
-                    Debug.Log($"Parameter name: {parameterName}");
-                    string fullPath = FindFileByGuid(parameterName, FilePaths.TARGET_FOLDER_PATH + "/" + rootName).Replace("_off.anim", "");
-
-                    string onToggleAnimePath = fullPath + "_on.anim";
-                    string offToggleAnimePath = fullPath + "_off.anim";
-
-                    // Check if the files exist
-                    bool onToggleExists = File.Exists(onToggleAnimePath);
-                    bool offToggleExists = File.Exists(offToggleAnimePath);
-
-                    if (onToggleExists && offToggleExists)
-                    {
-                        AnimationClip onClip = _applyToOnAnimation
-                            ? AssetDatabase.LoadAssetAtPath<AnimationClip>(onToggleAnimePath)
-                            : null;
-                        AnimationClip offClip = _applyToOffAnimation
-                            ? AssetDatabase.LoadAssetAtPath<AnimationClip>(offToggleAnimePath)
-                            : null;
-
-                        // Clear all existing blend shape animations
-                        if (_applyToOnAnimation)
-                        {
-                            clearAllBlendShapeAnimations(onClip, toggleItem);
-                        }
-
-                        if (_applyToOffAnimation)
-                        {
-                            clearAllBlendShapeAnimations(offClip, toggleItem);
-                        }
-
-                        foreach (var blendShapeChange in toggleItem.BlendShapesToChange)
-                        {
-                            // Get the SkinnedMeshRenderer
-                            var skinnedMeshRenderer = blendShapeChange.SkinnedMesh;
-                            if (skinnedMeshRenderer == null) continue;
-
-                            // Get the blend shape index
-                            int blendShapeIndex =
-                                skinnedMeshRenderer.sharedMesh.GetBlendShapeIndex(blendShapeChange.name);
-                            if (blendShapeIndex < 0) continue;
-
-                            // Apply blend shape changes to onClip and offClip
-                            var transform = skinnedMeshRenderer.transform;
-                            var blendShapePath = AnimationUtility.CalculateTransformPath(transform, transform.root);
-
-                            if (onClip != null)
-                            {
-                                AnimationCurve onCurve = AnimationCurve.Linear(0, blendShapeChange.value, 0,
-                                    blendShapeChange.value);
-                                onClip.SetCurve(blendShapePath, typeof(SkinnedMeshRenderer),
-                                    $"blendShape.{blendShapeChange.name}", onCurve);
-                            }
-
-                            if (offClip != null)
-                            {
-                                AnimationCurve offCurve = AnimationCurve.Linear(0, blendShapeChange.value, 0,
-                                    blendShapeChange.value);
-                                offClip.SetCurve(blendShapePath, typeof(SkinnedMeshRenderer),
-                                    $"blendShape.{blendShapeChange.name}", offCurve);
-                            }
-
-                            AssetDatabase.SaveAssets();
-                        }
-
-                        // 초기화된 애니메이션 클립에서 블렌드 쉐이프 값을 제거합니다.
-                        /* if (!_applyToOnAnimation && onToggleExists)
-                        {
-                            AnimationClip onClipToClear =
-                                AssetDatabase.LoadAssetAtPath<AnimationClip>(onToggleAnimePath);
-                            clearAllBlendShapeAnimations(onClipToClear, toggleItem);
-                        }
-
-                        if (!_applyToOffAnimation && offToggleExists)
-                        {
-                            AnimationClip offClipToClear =
-                                AssetDatabase.LoadAssetAtPath<AnimationClip>(offToggleAnimePath);
-                            clearAllBlendShapeAnimations(offClipToClear, toggleItem);
-                        }*/
-                    }
-                }
-            }
-
 
             serializedObject.ApplyModifiedProperties();
-
-            void clearAllBlendShapeAnimations(AnimationClip clip, ToggleItem toggleItem)
-            {
-                if (clip == null) return;
-
-                // Remove all blend shape animations from the clip
-                var editorCurveBindings = AnimationUtility.GetCurveBindings(clip);
-                foreach (var binding in editorCurveBindings)
-                {
-                    if (!binding.propertyName.Equals("m_IsActive"))
-                    {
-                        Debug.Log("path :: " + binding.path);
-                        AnimationUtility.SetEditorCurve(clip, binding, null);
-                    }
-                }
-
-                AssetDatabase.SaveAssets();
-            }
-            string FindFileByGuid(string guid, string searchFolder)
-            {
-                var allFiles = Directory.GetFiles(searchFolder, "*", SearchOption.AllDirectories);
-                var fileWithGuid = allFiles.FirstOrDefault(file => Path.GetFileNameWithoutExtension(file).Contains(guid));
-                return fileWithGuid;
-            }
         }
     }
 }
