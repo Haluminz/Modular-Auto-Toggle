@@ -1,6 +1,7 @@
 ﻿using nadena.dev.modular_avatar.core;
 using UnityEngine;
 using ToggleTool.Utils;
+using ToggleTool.Global;
 
 #if UNITY_EDITOR
 using UnityEditor;
@@ -36,7 +37,7 @@ namespace ToggleTool.Editor
             // 여기서 다시 아이콘을 설정
             foreach (var menuItem in GameObject.FindObjectsOfType<ModularAvatarMenuItem>())
             {
-                var identifier = obj.GetComponent<MenuItemIdentifier>();
+                var identifier = menuItem.GetComponent<MenuItemIdentifier>();
                 if (identifier != null && identifier.IdentifierName == Components.TOGGLE_TOOL_IDENTIFIER)
                 {
                     if (ImageLoader.instance.TryGetValue("ToggleON", out ImageLoader loader))
