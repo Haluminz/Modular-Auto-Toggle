@@ -1,12 +1,9 @@
 #if UNITY_EDITOR
 using System.IO;
 using System.Linq;
-using System.Security.Cryptography;
-using System.Text;
 using nadena.dev.modular_avatar.core;
 using ToggleTool.Runtime;
 using UnityEditor;
-using UnityEditor.Animations;
 using UnityEngine;
 using VRC.SDK3.Avatars.ScriptableObjects;
 using ToggleTool.Global;
@@ -299,7 +296,7 @@ namespace ToggleTool.Editor
             }
         }
     }
-    public class MenuItemIdentifier : MonoBehaviour
+    public class MenuItemIdentifier : AvatarTagComponent
     {
         public string IdentifierName;
     }

@@ -152,8 +152,8 @@ namespace ToggleTool.Runtime
             EditorGUILayout.BeginHorizontal();
             // Cast target to ToggleItem
             ToggleItem toggleItem = (ToggleItem)target;
-            _applyToOnAnimation = EditorGUILayout.Toggle("Apply to On Animation", toggleItem._applyToOnAnimation);
-            _applyToOffAnimation = EditorGUILayout.Toggle("Apply to Off Animation", toggleItem._applyToOffAnimation);
+            toggleItem._applyToOnAnimation = EditorGUILayout.Toggle("Apply to On Animation", toggleItem._applyToOnAnimation);
+            toggleItem._applyToOffAnimation = EditorGUILayout.Toggle("Apply to Off Animation", toggleItem._applyToOffAnimation);
             EditorGUILayout.EndHorizontal();
 
             if (GUILayout.Button("Apply"))

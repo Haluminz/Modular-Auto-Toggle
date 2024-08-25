@@ -12,6 +12,7 @@ namespace ToggleTool.Runtime
 {
     public static class UpdateToggle
     {
+    #if UNITY_EDITOR
         public static void UpdateSetting(GameObject parentObject)
         {
             if (!parentObject)
@@ -47,11 +48,9 @@ namespace ToggleTool.Runtime
                     if (rootObjectName == rootObject.name)
                     {
                         Debug.LogError($"Failed to update toggle setting. The root object name '{rootObjectName}' is identical to the previous setting name!");
-#if UNITY_EDITOR
                         EditorUtility.DisplayDialog(Messages.DIALOG_TITLE_ERROR,
                             "Cannot execute update. Avatar name must be changed first.\n아바타의 이름이 변경되지 않은상태에서는 업데이트를 실행할수 없습니다.",
                             Messages.DIALOG_BUTTON_OK);
-#endif
                         return;
                     }
                     GameObject[] storedItems = itemsHolder.items;
@@ -102,7 +101,7 @@ namespace ToggleTool.Runtime
                 }
             }
         }
-        
+
         public static string GetFirstAvatarParameterName(GameObject obj)
         {
             var avatarParameters = obj.GetComponent<ModularAvatarParameters>();
@@ -125,5 +124,6 @@ namespace ToggleTool.Runtime
                 return null;
             }
         }
+#endif
     }
 }

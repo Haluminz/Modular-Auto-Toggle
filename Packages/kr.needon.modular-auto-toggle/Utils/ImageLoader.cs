@@ -9,7 +9,7 @@ using UnityEditor;
 
 namespace ToggleTool.Utils
 {
-    public class ImageLoader : MonoBehaviour
+    public class ImageLoader
     {
         public static readonly Dictionary<string, ImageLoader> instance = new Dictionary<string, ImageLoader>()
         {

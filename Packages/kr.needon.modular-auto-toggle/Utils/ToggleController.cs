@@ -4,13 +4,16 @@ using System.Security.Cryptography;
 using System.Text;
 using ToggleTool.Global;
 using UnityEditor;
-using UnityEditor.Animations;
+#if UNITY_EDITOR
 using UnityEngine;
+using UnityEditor.Animations; // Add this line to access AnimatorController
+#endif
 
 namespace ToggleTool.Utils
 {
     public static class ToggleController
     {
+        #if UNITY_EDITOR
         public static AnimatorController ConfigureAnimator(GameObject[] items, GameObject rootObject,
             string targetFolder, string groupName, string paramName, bool toggleSaved, bool toggleReverse, bool isUpdate, string hash)
         {
@@ -142,6 +145,7 @@ namespace ToggleTool.Utils
 
             return clip;
         }
+        #endif
 
         public static string Md5Hash(string input)
         {
